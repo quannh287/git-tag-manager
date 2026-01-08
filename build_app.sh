@@ -1,6 +1,6 @@
 #!/bin/bash
 # Build script for Git Tag Manager macOS app
-# Creates a standalone .app bundle with custom icon
+# Creates a standalone .app bundle with custom icon and DMG
 
 set -e
 
@@ -10,6 +10,10 @@ echo "🔧 Building Git Tag Manager..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ASSETS_DIR="$SCRIPT_DIR/assets"
 ICONSET_DIR="$ASSETS_DIR/app_icons.iconset"
+
+# Get version from package
+VERSION=$(python3 -c "from manager import __version__; print(__version__)")
+echo "📌 Version: $VERSION"
 
 # 1. Create .icns from PNG
 echo "📦 Creating icon..."
@@ -54,11 +58,20 @@ pyinstaller --noconfirm --onedir --windowed \
 
 echo "✅ App bundle created!"
 
-# 3. Create DMG
+# 3. Update Info.plist with version
+echo "📝 Setting version in Info.plist..."
+INFO_PLIST="$SCRIPT_DIR/dist/GitTagManager.app/Contents/Info.plist"
+# Use Add if key doesn't exist, otherwise Set
+/usr/libexec/PlistBuddy -c "Add :CFBundleShortVersionString string $VERSION" "$INFO_PLIST" 2>/dev/null || \
+    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$INFO_PLIST"
+/usr/libexec/PlistBuddy -c "Add :CFBundleVersion string $VERSION" "$INFO_PLIST" 2>/dev/null || \
+    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $VERSION" "$INFO_PLIST"
+
+# 4. Create DMG
 echo "💿 Creating DMG..."
 
 APP_NAME="GitTagManager"
-DMG_NAME="GitTagManager"
+DMG_NAME="GitTagManager-${VERSION}"
 DMG_DIR="$SCRIPT_DIR/dist/dmg"
 DMG_PATH="$SCRIPT_DIR/dist/$DMG_NAME.dmg"
 
@@ -73,7 +86,7 @@ cp -R "$SCRIPT_DIR/dist/$APP_NAME.app" "$DMG_DIR/"
 ln -s /Applications "$DMG_DIR/Applications"
 
 # Create DMG using hdiutil
-hdiutil create -volname "$APP_NAME" \
+hdiutil create -volname "$APP_NAME $VERSION" \
     -srcfolder "$DMG_DIR" \
     -ov -format UDZO \
     "$DMG_PATH"
@@ -83,7 +96,8 @@ rm -rf "$DMG_DIR"
 
 echo ""
 echo "✅ Build complete!"
+echo "📌 Version: $VERSION"
 echo "📍 App location: $SCRIPT_DIR/dist/GitTagManager.app"
-echo "💿 DMG location: $SCRIPT_DIR/dist/GitTagManager.dmg"
+echo "💿 DMG location: $SCRIPT_DIR/dist/$DMG_NAME.dmg"
 echo ""
 echo "To install: Open DMG and drag GitTagManager to Applications"
