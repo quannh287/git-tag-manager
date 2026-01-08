@@ -14,5 +14,8 @@ packaging>=23.0
 # Drag & Drop support
 tkinterdnd2>=0.3.0
 
+# Image processing (for app icon)
+Pillow>=10.0.0
+
 # Optional: For building standalone executables
 # pyinstaller>=6.0.0

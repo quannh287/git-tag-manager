@@ -56,13 +56,16 @@ def save_config(config_data: Dict[str, Any]) -> None:
 
 
 def open_config_file() -> None:
-    """Mở file config bằng ứng dụng mặc định của hệ thống."""
+    """Mở file config bằng text editor."""
     try:
         if platform.system() == "Darwin":
-            subprocess.call(('open', CONFIG_PATH))
+            # -t flag: mở với default text editor
+            subprocess.call(('open', '-t', CONFIG_PATH))
         elif platform.system() == "Windows":
-            os.startfile(CONFIG_PATH)
+            # Mở với notepad
+            subprocess.call(('notepad', CONFIG_PATH))
         else:
+            # Linux: thử xdg-open hoặc các text editors phổ biến
             subprocess.call(('xdg-open', CONFIG_PATH))
     except (OSError, subprocess.SubprocessError):
         pass

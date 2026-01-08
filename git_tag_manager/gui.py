@@ -20,11 +20,10 @@ from .core import (
     DEFAULT_STRATEGIES,
 )
 
-# Colors
-COLOR_CARD = "#2b2b2b"
-COLOR_SUCCESS = "#2CC985"
-COLOR_ACCENT = "#3B8ED0"
-COLOR_DROP_HOVER = "#444444"
+# macOS Native Colors (works with both light/dark mode)
+COLOR_SUCCESS = "#34C759"  # macOS Green
+COLOR_ACCENT = "#007AFF"   # macOS Blue
+COLOR_ORANGE = "#FF9500"   # macOS Orange
 
 
 class GitTagManagerGUI(ctk.CTk, TkinterDnD.DnDWrapper):
@@ -35,11 +34,18 @@ class GitTagManagerGUI(ctk.CTk, TkinterDnD.DnDWrapper):
         # Init DnD
         self.TkdndVersion = TkinterDnD._require(self)
 
-        self.title("Git Tag Manager Pro")
-        self.geometry("700x650")
-        ctk.set_appearance_mode("Dark")
+        self.title("Git Tag Manager")
+        self.geometry("680x600")
+
+        # Follow system appearance (light/dark mode)
+        ctk.set_appearance_mode("System")
+        ctk.set_default_color_theme("blue")
+
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(5, weight=1)  # Log box expand
+
+        # Set app icon
+        self._set_app_icon()
 
         self.config, is_new = load_or_create_config()
         self.target_tag = None
@@ -53,6 +59,33 @@ class GitTagManagerGUI(ctk.CTk, TkinterDnD.DnDWrapper):
         self._setup_drag_drop()
 
         self.reload_config()
+
+    def _set_app_icon(self):
+        """Set app icon từ assets folder."""
+        try:
+            from PIL import Image, ImageTk
+
+            # Tìm đường dẫn đến icon
+            module_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = os.path.dirname(module_dir)
+
+            # Ưu tiên .icns, fallback .png
+            icon_icns = os.path.join(project_root, "assets", "app_icons.icns")
+            icon_png = os.path.join(project_root, "assets", "app_icons.png")
+
+            icon_path = icon_icns if os.path.exists(icon_icns) else icon_png
+
+            if os.path.exists(icon_path):
+                icon_image = Image.open(icon_path)
+                # Resize for window icon
+                icon_image = icon_image.resize((128, 128), Image.Resampling.LANCZOS)
+                icon_photo = ImageTk.PhotoImage(icon_image)
+                self.iconphoto(True, icon_photo)
+                # Giữ reference để tránh garbage collection
+                self._icon_photo = icon_photo
+        except Exception:
+            # Bỏ qua nếu không load được icon
+            pass
 
     def _create_header(self):
         """Tạo header với title và nút config."""
@@ -69,24 +102,37 @@ class GitTagManagerGUI(ctk.CTk, TkinterDnD.DnDWrapper):
             self.header_frame,
             text="⚙ Config",
             width=80,
-            fg_color="#444",
+            fg_color="transparent",
+            border_width=1,
+            text_color=COLOR_ACCENT,
+            border_color=COLOR_ACCENT,
             command=open_config_file
         ).pack(side="right")
 
     def _create_selection_frame(self):
         """Tạo frame chọn project và strategy."""
-        self.sel_frame = ctk.CTkFrame(self, fg_color=COLOR_CARD)
+        self.sel_frame = ctk.CTkFrame(self)
         self.sel_frame.grid(row=1, column=0, sticky="ew", padx=20, pady=10)
         self.sel_frame.grid_columnconfigure((0, 1), weight=1)
 
-        # Label hướng dẫn kéo thả
-        self.lbl_drop = ctk.CTkLabel(
+        # Drop zone - nổi bật hơn
+        self.drop_zone = ctk.CTkFrame(
             self.sel_frame,
-            text="📂 Drag & Drop Project Folder Here to Add",
-            font=("Arial", 10, "italic"),
-            text_color="gray"
+            height=60,
+            border_width=2,
+            border_color=COLOR_ACCENT,
+            fg_color="transparent"
         )
-        self.lbl_drop.grid(row=0, column=0, columnspan=2, pady=(10, 0))
+        self.drop_zone.grid(row=0, column=0, columnspan=2, sticky="ew", padx=15, pady=(15, 10))
+        self.drop_zone.grid_propagate(False)
+
+        self.lbl_drop = ctk.CTkLabel(
+            self.drop_zone,
+            text="📂 Drag & Drop Project Folder Here",
+            font=("Arial", 13),
+            text_color=COLOR_ACCENT
+        )
+        self.lbl_drop.place(relx=0.5, rely=0.5, anchor="center")
 
         # Project selector
         ctk.CTkLabel(
@@ -103,7 +149,7 @@ class GitTagManagerGUI(ctk.CTk, TkinterDnD.DnDWrapper):
         )
         self.combo_proj.grid(row=2, column=0, sticky="ew", padx=15, pady=(5, 15))
 
-        # Strategy selector
+        # Strategy selector with Edit button
         ctk.CTkLabel(
             self.sel_frame,
             text="STRATEGY",
@@ -111,12 +157,29 @@ class GitTagManagerGUI(ctk.CTk, TkinterDnD.DnDWrapper):
             text_color="gray"
         ).grid(row=1, column=1, sticky="w", padx=15, pady=(5, 0))
 
+        # Frame to hold combobox and edit button
+        strat_frame = ctk.CTkFrame(self.sel_frame, fg_color="transparent")
+        strat_frame.grid(row=2, column=1, sticky="ew", padx=15, pady=(5, 15))
+        strat_frame.grid_columnconfigure(0, weight=1)
+
         self.combo_strat = ctk.CTkComboBox(
-            self.sel_frame,
+            strat_frame,
             values=[],
             command=self.on_strategy_change
         )
-        self.combo_strat.grid(row=2, column=1, sticky="ew", padx=15, pady=(5, 15))
+        self.combo_strat.grid(row=0, column=0, sticky="ew")
+
+        self.btn_edit_strat = ctk.CTkButton(
+            strat_frame,
+            text="✎",
+            width=32,
+            fg_color="transparent",
+            border_width=1,
+            text_color=COLOR_ACCENT,
+            border_color=COLOR_ACCENT,
+            command=self._show_edit_strategy_dialog
+        )
+        self.btn_edit_strat.grid(row=0, column=1, padx=(8, 0))
 
     def _create_dashboard(self):
         """Tạo dashboard hiển thị current/next tag."""
@@ -125,7 +188,7 @@ class GitTagManagerGUI(ctk.CTk, TkinterDnD.DnDWrapper):
         self.dash_frame.grid_columnconfigure((0, 1), weight=1)
 
         # Current Card
-        self.c_curr = ctk.CTkFrame(self.dash_frame, fg_color=COLOR_CARD)
+        self.c_curr = ctk.CTkFrame(self.dash_frame)
         self.c_curr.grid(row=0, column=0, sticky="ew", padx=(0, 10), ipady=10)
 
         ctk.CTkLabel(
@@ -145,7 +208,6 @@ class GitTagManagerGUI(ctk.CTk, TkinterDnD.DnDWrapper):
         # Next Card
         self.c_next = ctk.CTkFrame(
             self.dash_frame,
-            fg_color=COLOR_CARD,
             border_width=2,
             border_color=COLOR_SUCCESS
         )
@@ -185,20 +247,22 @@ class GitTagManagerGUI(ctk.CTk, TkinterDnD.DnDWrapper):
         """Tạo các nút action."""
         self.btn_act = ctk.CTkButton(
             self,
-            text="RELOAD",
-            width=80,
-            fg_color="#555",
+            text="↻ Reload",
+            width=90,
+            fg_color="transparent",
+            border_width=1,
+            text_color=COLOR_ACCENT,
+            border_color=COLOR_ACCENT,
             command=self.reload_config
         )
         self.btn_act.grid(row=6, column=0, sticky="w", padx=20, pady=(0, 20))
 
         self.btn_run = ctk.CTkButton(
             self,
-            text="🚀 CREATE TAG & PUSH",
-            height=50,
-            font=("Arial", 16, "bold"),
+            text="Create Tag & Push",
+            height=44,
+            font=("SF Pro", 14, "bold"),
             fg_color=COLOR_ACCENT,
-            hover_color="#2A75B0",
             command=self.execute_tag
         )
         self.btn_run.grid(row=6, column=0, sticky="e", padx=20, pady=(0, 20))
@@ -230,8 +294,92 @@ class GitTagManagerGUI(ctk.CTk, TkinterDnD.DnDWrapper):
             self.log(f"Error: Not a Git repo (missing .git): {raw_path}")
             return
 
-        # Ask for Project Name
-        folder_name = os.path.basename(raw_path)
+        # Defer dialog để không block drag/drop event
+        self.after(100, lambda: self._show_add_project_dialog(raw_path))
+
+    def _show_edit_strategy_dialog(self):
+        """Hiển thị dialog để sửa strategy format."""
+        proj_name = self.combo_proj.get()
+        strat_name = self.combo_strat.get()
+
+        if not proj_name or not strat_name:
+            self.log("Please select a project and strategy first.")
+            return
+
+        proj = self.config['projects'].get(proj_name)
+        if not proj:
+            return
+
+        strat = proj['strategies'].get(strat_name)
+        if not strat:
+            return
+
+        # Tạo edit dialog
+        dialog = ctk.CTkToplevel(self)
+        dialog.title(f"Edit Strategy: {strat_name}")
+        dialog.geometry("450x280")
+        dialog.transient(self)
+        dialog.grab_set()
+
+        # Center dialog
+        dialog.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - 450) // 2
+        y = self.winfo_y() + (self.winfo_height() - 280) // 2
+        dialog.geometry(f"+{x}+{y}")
+
+        # Format entry
+        ctk.CTkLabel(dialog, text="Format:", font=("Arial", 12, "bold")).pack(pady=(20, 5), padx=20, anchor="w")
+        format_entry = ctk.CTkEntry(dialog, width=400)
+        format_entry.insert(0, strat['format'])
+        format_entry.pack(padx=20)
+
+        # Hint
+        ctk.CTkLabel(
+            dialog,
+            text="Placeholders: {major}, {minor}, {patch}, {build}",
+            font=("Arial", 10),
+            text_color="gray"
+        ).pack(padx=20, anchor="w")
+
+        # Increment type
+        ctk.CTkLabel(dialog, text="Increment:", font=("Arial", 12, "bold")).pack(pady=(15, 5), padx=20, anchor="w")
+        increment_var = ctk.StringVar(value=strat['increment'])
+        increment_menu = ctk.CTkOptionMenu(
+            dialog,
+            values=["major", "minor", "patch", "build"],
+            variable=increment_var,
+            width=400
+        )
+        increment_menu.pack(padx=20)
+
+        # Save button
+        def save_changes():
+            new_format = format_entry.get().strip()
+            new_increment = increment_var.get()
+
+            if not new_format:
+                return
+
+            # Update config
+            self.config['projects'][proj_name]['strategies'][strat_name] = {
+                'format': new_format,
+                'increment': new_increment
+            }
+            save_config(self.config)
+            self.log(f"Strategy '{strat_name}' updated: {new_format} ({new_increment})")
+            dialog.destroy()
+            self.calculate()
+
+        ctk.CTkButton(
+            dialog,
+            text="Save",
+            fg_color=COLOR_ACCENT,
+            command=save_changes
+        ).pack(pady=20)
+
+    def _show_add_project_dialog(self, path: str):
+        """Hiển thị dialog để nhập tên project."""
+        folder_name = os.path.basename(path)
         dialog = ctk.CTkInputDialog(
             text=f"Git Repo Detected!\nEnter Project Name:",
             title="Add Project"
@@ -239,7 +387,7 @@ class GitTagManagerGUI(ctk.CTk, TkinterDnD.DnDWrapper):
         project_name = dialog.get_input()
 
         if project_name:
-            self.add_new_project(project_name, raw_path)
+            self.add_new_project(project_name, path)
 
     def add_new_project(self, name: str, path: str):
         """Thêm project mới vào config."""
