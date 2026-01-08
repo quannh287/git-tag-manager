@@ -52,8 +52,38 @@ pyinstaller --noconfirm --onedir --windowed \
     --hidden-import git_tag_manager.gui \
     run_gui.py
 
+echo "✅ App bundle created!"
+
+# 3. Create DMG
+echo "💿 Creating DMG..."
+
+APP_NAME="GitTagManager"
+DMG_NAME="GitTagManager"
+DMG_DIR="$SCRIPT_DIR/dist/dmg"
+DMG_PATH="$SCRIPT_DIR/dist/$DMG_NAME.dmg"
+
+# Cleanup previous DMG
+rm -rf "$DMG_DIR" "$DMG_PATH"
+
+# Create DMG folder structure
+mkdir -p "$DMG_DIR"
+cp -R "$SCRIPT_DIR/dist/$APP_NAME.app" "$DMG_DIR/"
+
+# Create symbolic link to Applications
+ln -s /Applications "$DMG_DIR/Applications"
+
+# Create DMG using hdiutil
+hdiutil create -volname "$APP_NAME" \
+    -srcfolder "$DMG_DIR" \
+    -ov -format UDZO \
+    "$DMG_PATH"
+
+# Cleanup
+rm -rf "$DMG_DIR"
+
 echo ""
 echo "✅ Build complete!"
 echo "📍 App location: $SCRIPT_DIR/dist/GitTagManager.app"
+echo "💿 DMG location: $SCRIPT_DIR/dist/GitTagManager.dmg"
 echo ""
-echo "To install, drag GitTagManager.app to /Applications"
+echo "To install: Open DMG and drag GitTagManager to Applications"
