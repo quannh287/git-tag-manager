@@ -1,0 +1,30 @@
+{
+  "projects": {
+    "bPro-App": {
+      "path": "/Users/Username/Projects/bPro",
+      "strategies": {
+        "staging": {
+          "format": "{major}.{minor}.{patch}.{build}-stag",
+          "increment": "build"
+        },
+        "production": {
+          "format": "{major}.{minor}.{patch}",
+          "increment": "patch"
+        }
+      }
+    },
+    "MyLibrary": {
+      "path": "/Users/Username/Projects/MyLib",
+      "strategies": {
+        "alpha": {
+          "format": "{major}.{minor}.{patch}-alpha{build}",
+          "increment": "build"
+        },
+        "release": {
+          "format": "{major}.{minor}.{patch}",
+          "increment": "minor"
+        }
+      }
+    }
+  }
+}

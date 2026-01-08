@@ -1,0 +1,18 @@
+# Git Tag Manager - Dependencies
+# Install: pip install -r requirements.txt
+
+# GUI Framework
+customtkinter>=5.0.0
+
+# CLI Libraries
+rich>=13.0.0
+questionary>=2.0.0
+
+# Version parsing
+packaging>=23.0
+
+# Drag & Drop support
+tkinterdnd2>=0.3.0
+
+# Optional: For building standalone executables
+# pyinstaller>=6.0.0
