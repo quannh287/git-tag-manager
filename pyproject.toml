@@ -49,9 +49,9 @@ Homepage = "https://github.com/quannh/git-tag-manager"
 Repository = "https://github.com/quannh/git-tag-manager"
 
 [project.scripts]
-git-tag-cli = "git_tag_manager.cli:main"
-git-tag-gui = "git_tag_manager.gui:main"
+git-tag-cli = "manager.cli:main"
+git-tag-gui = "manager.gui:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["git_tag_manager*"]
+include = ["manager*"]

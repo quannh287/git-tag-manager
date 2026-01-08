@@ -35,7 +35,7 @@ pip install -r requirements.txt
 
 ```bash
 # Test import
-python3 -c "from git_tag_manager import __version__; print(__version__)"
+python3 -c "from manager import __version__; print(__version__)"
 ```
 
 ---
@@ -46,7 +46,7 @@ python3 -c "from git_tag_manager import __version__; print(__version__)"
 
 ```bash
 # Cách 1: Chạy trực tiếp module
-python3 -m git_tag_manager.gui
+python3 -m manager.gui
 
 # Cách 2: Dùng entry point (sau khi pip install -e .)
 git-tag-gui
@@ -56,7 +56,7 @@ git-tag-gui
 
 ```bash
 # Cách 1: Chạy trực tiếp module
-python3 -m git_tag_manager.cli
+python3 -m manager.cli
 
 # Cách 2: Dùng entry point
 git-tag-cli
@@ -74,14 +74,14 @@ Tạo file `.vscode/launch.json`:
       "name": "Debug GUI",
       "type": "debugpy",
       "request": "launch",
-      "module": "git_tag_manager.gui",
+      "module": "manager.gui",
       "cwd": "${workspaceFolder}"
     },
     {
       "name": "Debug CLI",
       "type": "debugpy",
       "request": "launch",
-      "module": "git_tag_manager.cli",
+      "module": "manager.cli",
       "cwd": "${workspaceFolder}"
     }
   ]
@@ -92,7 +92,7 @@ Tạo file `.vscode/launch.json`:
 
 1. Run > Edit Configurations
 2. Add New > Python
-3. Module name: `git_tag_manager.gui` hoặc `git_tag_manager.cli`
+3. Module name: `manager.gui` hoặc `manager.cli`
 4. Working directory: project root
 
 ---
@@ -101,7 +101,7 @@ Tạo file `.vscode/launch.json`:
 
 ```
 git-tag-manager/
-├── git_tag_manager/           # Main package
+├── manager/           # Main package
 │   ├── __init__.py            # Package init, version
 │   ├── core.py                # Core logic (shared)
 │   ├── cli.py                 # CLI interface

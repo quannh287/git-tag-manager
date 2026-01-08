@@ -107,7 +107,7 @@ Tool sử dụng file cấu hình JSON tại `~/.git_tag_config.json`.
 ```bash
 git-tag-gui
 # hoặc
-python3 -m git_tag_manager.gui
+python3 -m manager.gui
 ```
 
 **Thêm dự án mới:**
@@ -133,7 +133,7 @@ python3 -m git_tag_manager.gui
 ```bash
 git-tag-cli
 # hoặc
-python3 -m git_tag_manager.cli
+python3 -m manager.cli
 ```
 
 **Quy trình:**
@@ -180,7 +180,7 @@ pip install pyinstaller
 pyinstaller --noconfirm --onefile --windowed \
   --name "GitTagManager" \
   --collect-all tkinterdnd2 \
-  -m git_tag_manager.gui
+  -m manager.gui
 ```
 
 **Lưu ý:** Tham số `--collect-all tkinterdnd2` là **bắt buộc** để drag & drop hoạt động trong bản build.

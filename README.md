@@ -45,7 +45,7 @@ git-tag-gui
 Hoặc chạy trực tiếp:
 
 ```bash
-python -m git_tag_manager.gui
+python -m manager.gui
 ```
 
 **Thêm dự án mới:**
@@ -63,7 +63,7 @@ git-tag-cli
 Hoặc chạy trực tiếp:
 
 ```bash
-python -m git_tag_manager.cli
+python -m manager.cli
 ```
 
 ## ⚙️ Cấu Hình
@@ -120,7 +120,7 @@ pip install pyinstaller
 pyinstaller --noconfirm --onefile --windowed \
   --name "GitTagManager" \
   --collect-all tkinterdnd2 \
-  -m git_tag_manager.gui
+  -m manager.gui
 ```
 
 ## 📄 License

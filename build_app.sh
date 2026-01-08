@@ -47,9 +47,9 @@ pyinstaller --noconfirm --onedir --windowed \
     --collect-all tkinterdnd2 \
     --collect-all customtkinter \
     --add-data "assets:assets" \
-    --hidden-import git_tag_manager \
-    --hidden-import git_tag_manager.core \
-    --hidden-import git_tag_manager.gui \
+    --hidden-import manager \
+    --hidden-import manager.core \
+    --hidden-import manager.gui \
     run_gui.py
 
 echo "✅ App bundle created!"
